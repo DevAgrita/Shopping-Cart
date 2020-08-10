@@ -4,7 +4,7 @@ var mongoose = require('mongoose');
 var config = require('./config/database');
 var bodyParser = require('body-parser');
 var session = require('express-session');
-
+const expressValidator = require('express-validator');
 //connect the mongodb database
 mongoose.connect(config.database, {useNewUrlParser: true});
 const db = mongoose.connection;
@@ -14,20 +14,22 @@ db.once('open', function() {
 });
 
 var app = express();
+
 //body parser middleware
+
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
  
 // parse application/json
 app.use(bodyParser.json());
 //express-session middleware
-var app = express()
+var app = express();
 app.set('trust proxy', 1) // trust first proxy
 app.use(session({
   secret: 'keyboard cat',
-  resave: false,
+  resave: true,
   saveUninitialized: true,
-  cookie: { secure: true }
+ // cookie: { secure: true }
 }))
 //express-messages middleware
 app.use(require('connect-flash')());
@@ -35,11 +37,15 @@ app.use(function (req, res, next) {
   res.locals.messages = require('express-messages')(req, res);
   next();
 });
+//using express-validator to check value get from form.
+app.use(expressValidator());
 //set up the view section
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine','ejs');
 //set up public folder
 app.use(express.static(path.join(__dirname,'public')));
+//set global errors variables
+app.locals.errors = null;
 //set up routes
 var pages = require('./routes/pages.js');
 var adminPages = require('./routes/admin_pages.js');
